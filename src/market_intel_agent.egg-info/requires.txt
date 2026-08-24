@@ -1,0 +1,11 @@
+langgraph
+langchain-core
+pydantic>=2.0
+python-dotenv
+httpx
+PyYAML
+
+[dev]
+pytest
+pytest-cov
+ruff

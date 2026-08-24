@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "market-intel-agent"
+version = "0.1.0"
+description = "Autonomous market intelligence and competitor tracking agent"
+requires-python = ">=3.12"
+dependencies = [
+    "langgraph",
+    "langchain-core",
+    "pydantic>=2.0",
+    "python-dotenv",
+    "httpx",
+    "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

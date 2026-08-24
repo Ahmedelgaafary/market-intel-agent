@@ -1,0 +1,23 @@
+application:
+  name: market-intel-agent
+  environment: development
+
+competitors:
+  - Microsoft
+  - Google
+  - Amazon
+
+news:
+  lookback_days: 7
+  max_articles_per_competitor: 10
+
+memory:
+  similarity_threshold: 0.85
+
+summary:
+  max_words: 300
+
+schedule:
+  day: monday
+  hour: 9
+  minute: 0
