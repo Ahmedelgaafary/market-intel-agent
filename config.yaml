@@ -10,6 +10,7 @@ competitors:
 news:
   lookback_days: 7
   max_articles_per_competitor: 10
+  language: en
 
 memory:
   similarity_threshold: 0.85
