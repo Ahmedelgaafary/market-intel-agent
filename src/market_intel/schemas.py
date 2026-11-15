@@ -60,6 +60,23 @@ class Fact(BaseModel):
     date: date
     source_url: HttpUrl
 
+class ExtractedFact(BaseModel):
+    """A factual development extracted from a news article."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    fact: str = Field(min_length=10, max_length=2000)
+    category: FactCategory = "other"
+    event_date: date | None = None
+
+
+class FactExtraction(BaseModel):
+    """Structured response returned by the LLM."""
+
+    facts: list[ExtractedFact] = Field(
+        default_factory=list,
+        max_length=20,
+    )
 
 class RunResult(BaseModel):
     """Audit summary for one agent execution."""
