@@ -108,6 +108,23 @@ Before a fact reaches the final report, it is compared against previously stored
 
 For v1, deduplication combines deterministic metadata filtering with lightweight text similarity. A vector database is intentionally avoided because the expected memory size does not justify the additional infrastructure.
 
+### Persistent Memory and Duplicate Detection
+
+The agent maintains persistent SQLite memory of previously discovered
+competitor developments.
+
+Before storing extracted facts, the memory-processing module:
+
+1. Loads previously stored facts for the relevant competitors.
+2. Normalizes text to reduce differences caused by capitalization,
+   punctuation, and whitespace.
+3. Calculates character-level similarity using Python's `difflib`.
+4. Classifies facts using a configurable similarity threshold
+   (default: 0.88).
+5. Stores new facts and skips detected duplicates.
+
+No vector database or embedding service is required.
+
 ## Failure Handling
 
 The system is designed to continue operating when individual components fail.
