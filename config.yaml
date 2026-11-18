@@ -18,6 +18,9 @@ memory:
 summary:
   max_words: 300
 
+reporting:
+  output_dir: reports
+
 schedule:
   day: monday
   hour: 9

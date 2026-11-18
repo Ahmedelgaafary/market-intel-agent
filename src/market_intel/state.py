@@ -32,3 +32,12 @@ class AgentState(TypedDict):
 
     report_required: bool
     summary: str | None
+
+    delivery_status: Literal[
+        "pending",
+        "slack",
+        "local_fallback",
+        "failed",
+        "skipped",
+    ]
+    report_path: str | None
