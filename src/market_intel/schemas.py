@@ -60,6 +60,7 @@ class Fact(BaseModel):
     date: date
     source_url: HttpUrl
 
+
 class ExtractedFact(BaseModel):
     """A factual development extracted from a news article."""
 
@@ -77,6 +78,7 @@ class FactExtraction(BaseModel):
         default_factory=list,
         max_length=20,
     )
+
 
 class RunResult(BaseModel):
     """Audit summary for one agent execution."""

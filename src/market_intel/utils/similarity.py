@@ -1,4 +1,3 @@
-
 """Lightweight text similarity and memory-diff utilities."""
 
 import math
@@ -40,8 +39,7 @@ def normalize_fact_text(text: str) -> str:
     normalized = unicodedata.normalize("NFKC", text).casefold()
 
     characters = [
-        " " if unicodedata.category(char)[0] in {"P", "S"} else char
-        for char in normalized
+        " " if unicodedata.category(char)[0] in {"P", "S"} else char for char in normalized
     ]
 
     return " ".join("".join(characters).split())

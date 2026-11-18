@@ -1,5 +1,3 @@
-
-
 """LLM-based factual extraction from news articles."""
 
 import json
@@ -65,11 +63,7 @@ def _build_article_payload(article: Article) -> str:
     payload = {
         "competitor": article.competitor,
         "title": article.title,
-        "published_at": (
-            article.published_at.isoformat()
-            if article.published_at
-            else None
-        ),
+        "published_at": (article.published_at.isoformat() if article.published_at else None),
         "description": article.description,
         "content": article.content,
         "source_url": str(article.source_url),
@@ -93,16 +87,12 @@ def _invoke_with_validation_retry(
     structured_model = model.with_structured_output(FactExtraction)
 
     messages = [
-    ("system", SYSTEM_PROMPT),
-    (
-        "human",
+        ("system", SYSTEM_PROMPT),
         (
-            "Extract factual developments from this article:\n"
-            f"{article_payload}"
+            "human",
+            (f"Extract factual developments from this article:\n{article_payload}"),
         ),
-    ),
-]
-    
+    ]
 
     for attempt in range(MAX_VALIDATION_RETRIES + 1):
         try:
@@ -113,8 +103,7 @@ def _invoke_with_validation_retry(
         except (ValidationError, OutputParserException) as exc:
             if attempt >= MAX_VALIDATION_RETRIES:
                 raise FactExtractionError(
-                    "LLM returned invalid structured output after "
-                    f"{attempt + 1} attempts: {exc}"
+                    f"LLM returned invalid structured output after {attempt + 1} attempts: {exc}"
                 ) from exc
 
             messages = [

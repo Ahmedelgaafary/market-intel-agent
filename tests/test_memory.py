@@ -1,4 +1,3 @@
-
 """Tests for persistent memory processing."""
 
 from datetime import date

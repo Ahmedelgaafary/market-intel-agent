@@ -1,4 +1,3 @@
-
 from datetime import UTC, datetime
 
 import httpx
@@ -78,9 +77,7 @@ def test_fetch_articles_normalizes_response(valid_article, now):
     assert articles[0].competitor == "Microsoft"
     assert articles[0].title == valid_article["title"]
     assert str(articles[0].source_url) == valid_article["url"]
-    assert articles[0].published_at == datetime(
-        2026, 11, 14, 10, 30, tzinfo=UTC
-    )
+    assert articles[0].published_at == datetime(2026, 11, 14, 10, 30, tzinfo=UTC)
 
 
 def test_fetch_articles_sends_search_parameters(now):

@@ -1,4 +1,3 @@
-
 """Tests for fact normalization and similarity comparison."""
 
 from datetime import date
@@ -38,9 +37,7 @@ def test_normalize_unicode_text():
 
 
 def test_normalize_repeated_whitespace():
-    assert normalize_fact_text("Microsoft   launched\nAI") == (
-        "microsoft launched ai"
-    )
+    assert normalize_fact_text("Microsoft   launched\nAI") == ("microsoft launched ai")
 
 
 def test_exact_text_similarity():
@@ -50,10 +47,13 @@ def test_exact_text_similarity():
 
 
 def test_normalized_exact_match_similarity():
-    assert calculate_similarity(
-        "Microsoft launched a new AI platform.",
-        "  MICROSOFT LAUNCHED A NEW AI PLATFORM! ",
-    ) == 1.0
+    assert (
+        calculate_similarity(
+            "Microsoft launched a new AI platform.",
+            "  MICROSOFT LAUNCHED A NEW AI PLATFORM! ",
+        )
+        == 1.0
+    )
 
 
 def test_empty_text_similarity():

@@ -1,4 +1,3 @@
-
 """SQLite persistence for market intelligence facts and workflow runs."""
 
 import json
@@ -191,11 +190,7 @@ def save_run(run: RunResult, db_path: DatabasePath) -> None:
             (
                 run.run_id,
                 run.started_at.isoformat(),
-                (
-                    run.completed_at.isoformat()
-                    if run.completed_at is not None
-                    else None
-                ),
+                (run.completed_at.isoformat() if run.completed_at is not None else None),
                 run.status,
                 run.articles_fetched,
                 run.facts_extracted,
@@ -265,8 +260,6 @@ def list_runs(
 def count_facts(db_path: DatabasePath) -> int:
     """Return the total number of stored facts."""
     with _connection(db_path) as connection:
-        row = connection.execute(
-            "SELECT COUNT(*) AS total FROM facts"
-        ).fetchone()
+        row = connection.execute("SELECT COUNT(*) AS total FROM facts").fetchone()
 
     return int(row["total"])

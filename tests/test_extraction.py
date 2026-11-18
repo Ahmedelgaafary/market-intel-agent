@@ -1,4 +1,3 @@
-
 from datetime import UTC, date, datetime
 
 import pytest
@@ -41,9 +40,7 @@ def article():
         competitor="Microsoft",
         title="Microsoft announces a new enterprise AI platform",
         source_url="https://example.com/microsoft-ai",
-        published_at=datetime(
-            2026, 11, 14, 10, 30, tzinfo=UTC
-        ),
+        published_at=datetime(2026, 11, 14, 10, 30, tzinfo=UTC),
         description="Microsoft announced a new AI platform.",
         content="The platform will serve enterprise customers.",
     )
@@ -54,9 +51,7 @@ def valid_response():
     return {
         "facts": [
             {
-                "fact": (
-                    "Microsoft announced a new enterprise AI platform."
-                ),
+                "fact": ("Microsoft announced a new enterprise AI platform."),
                 "category": "product_launch",
                 "event_date": "2026-11-14",
             }
@@ -149,9 +144,7 @@ def test_extract_facts_retries_after_invalid_response(
         ]
     }
 
-    model = FakeStructuredModel(
-        [invalid_response, valid_response]
-    )
+    model = FakeStructuredModel([invalid_response, valid_response])
 
     result = extract_facts(article, model)
 
@@ -170,9 +163,7 @@ def test_extract_facts_fails_after_second_invalid_response(article):
         ]
     }
 
-    model = FakeStructuredModel(
-        [invalid_response, invalid_response]
-    )
+    model = FakeStructuredModel([invalid_response, invalid_response])
 
     with pytest.raises(FactExtractionError, match="2 attempts"):
         extract_facts(article, model)
@@ -181,9 +172,7 @@ def test_extract_facts_fails_after_second_invalid_response(article):
 
 
 def test_extract_facts_does_not_retry_provider_errors(article):
-    model = FakeStructuredModel(
-        [RuntimeError("Provider connection failed")]
-    )
+    model = FakeStructuredModel([RuntimeError("Provider connection failed")])
 
     with pytest.raises(RuntimeError, match="Provider connection failed"):
         extract_facts(article, model)
@@ -225,9 +214,7 @@ def test_extraction_does_not_trust_model_competitor_or_source(
             {
                 "facts": [
                     {
-                        "fact": (
-                            "Microsoft announced a new enterprise AI platform."
-                        ),
+                        "fact": ("Microsoft announced a new enterprise AI platform."),
                         "category": "product_launch",
                         "event_date": "2026-11-14",
                     }

@@ -1,4 +1,3 @@
-
 """Persistent memory processing for extracted facts."""
 
 from collections.abc import Iterable
@@ -64,9 +63,7 @@ def process_facts(
     existing_facts: list[Fact] = []
 
     for competitor in competitors:
-        existing_facts.extend(
-            list_facts(db_path, competitor=competitor)
-        )
+        existing_facts.extend(list_facts(db_path, competitor=competitor))
 
     diff = compare_facts(
         incoming_facts=incoming_facts,
@@ -74,10 +71,7 @@ def process_facts(
         threshold=threshold,
     )
 
-    saved_fact_ids = [
-        save_fact(fact, db_path)
-        for fact in diff.new_facts
-    ]
+    saved_fact_ids = [save_fact(fact, db_path) for fact in diff.new_facts]
 
     return MemoryProcessingResult(
         new_facts=diff.new_facts,

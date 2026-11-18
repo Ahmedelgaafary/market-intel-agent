@@ -1,4 +1,3 @@
-
 """NewsAPI integration for retrieving and normalizing competitor articles."""
 
 from datetime import UTC, datetime, timedelta
@@ -73,9 +72,7 @@ class NewsAPIClient:
             raise ValueError("lookback_days must be at least 1")
 
         if not 1 <= max_articles <= MAX_PAGE_SIZE:
-            raise ValueError(
-                f"max_articles must be between 1 and {MAX_PAGE_SIZE}"
-            )
+            raise ValueError(f"max_articles must be between 1 and {MAX_PAGE_SIZE}")
 
         if len(language) != 2 or not language.isalpha():
             raise ValueError("language must be a two-letter language code")
@@ -103,16 +100,12 @@ class NewsAPIClient:
         except httpx.TimeoutException as exc:
             raise NewsAPIError("NewsAPI request timed out.") from exc
         except httpx.RequestError as exc:
-            raise NewsAPIError(
-                f"Could not connect to NewsAPI: {exc}"
-            ) from exc
+            raise NewsAPIError(f"Could not connect to NewsAPI: {exc}") from exc
 
         try:
             payload = response.json()
         except ValueError as exc:
-            raise NewsAPIError(
-                "NewsAPI returned an invalid JSON response."
-            ) from exc
+            raise NewsAPIError("NewsAPI returned an invalid JSON response.") from exc
 
         if not isinstance(payload, dict):
             raise NewsAPIError("NewsAPI returned an unexpected response.")
@@ -120,10 +113,7 @@ class NewsAPIClient:
         if response.is_error:
             code = payload.get("code", "http_error")
             message = payload.get("message", response.reason_phrase)
-            raise NewsAPIError(
-                f"NewsAPI HTTP {response.status_code} "
-                f"({code}): {message}"
-            )
+            raise NewsAPIError(f"NewsAPI HTTP {response.status_code} ({code}): {message}")
 
         if payload.get("status") != "ok":
             code = payload.get("code", "unknown_error")
@@ -133,9 +123,7 @@ class NewsAPIClient:
         raw_articles = payload.get("articles")
 
         if not isinstance(raw_articles, list):
-            raise NewsAPIError(
-                "NewsAPI response does not contain a valid articles list."
-            )
+            raise NewsAPIError("NewsAPI response does not contain a valid articles list.")
 
         articles: list[Article] = []
 
@@ -168,9 +156,7 @@ class NewsAPIClient:
         if not isinstance(source_url, str) or not source_url.strip():
             return None
 
-        published_at = NewsAPIClient._parse_published_at(
-            raw_article.get("publishedAt")
-        )
+        published_at = NewsAPIClient._parse_published_at(raw_article.get("publishedAt"))
 
         description = raw_article.get("description")
         content = raw_article.get("content")
@@ -181,9 +167,7 @@ class NewsAPIClient:
                 title=title,
                 source_url=source_url,
                 published_at=published_at,
-                description=(
-                    description if isinstance(description, str) else None
-                ),
+                description=(description if isinstance(description, str) else None),
                 content=content if isinstance(content, str) else None,
             )
         except ValueError:
