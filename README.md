@@ -1,284 +1,207 @@
 # Autonomous Market Intelligence & Competitor Tracking Agent
 
-An autonomous AI agent that monitors competitors, extracts meaningful changes from recent news and articles, compares them against persistent memory, and delivers concise weekly intelligence reports to Slack.
+A Python application that monitors a configured list of competitors, extracts structured developments from news articles, compares them with historical SQLite memory, and produces concise executive intelligence reports.
 
-The system is designed around a reliable, stateful workflow rather than a single LLM prompt.
+> **Project status:** v1 implementation. The application workflow and scheduled runner are provider-injected: you must initialize a LangChain-compatible chat model in your own launcher. No LLM provider SDK or model selection is included in this repository.
 
-## Overview
+## What it does
 
-The agent automates the competitive-intelligence loop:
+A run follows this workflow:
 
-```text
-Fetch → Extract → Compare → Decide → Summarize → Deliver → Remember
-```
+1. Fetch recent articles for each configured competitor using NewsAPI.
+2. Extract structured facts from article content using an injected LLM.
+3. Compare extracted facts with SQLite memory using text similarity.
+4. Persist facts that are considered new.
+5. Decide whether there are new facts worth reporting.
+6. Generate an executive summary subject to the configured word limit.
+7. Send the report to Slack when a webhook is configured.
+8. Save a local Markdown report when Slack is unavailable or delivery fails.
+9. Persist run status, timestamps, metrics, and errors in SQLite.
 
-A scheduled run automatically:
-
-1. Fetches recent articles for a defined set of competitors.
-2. Extracts structured facts using an LLM.
-3. Compares extracted facts against previously stored information.
-4. Filters duplicate or previously reported events.
-5. Decides whether a report is necessary.
-6. Generates an executive-style summary from new facts.
-7. Delivers the report to Slack.
-8. Saves newly reported facts to persistent memory.
-9. Records the complete run in an audit log.
+The agent monitors only the competitor names configured in `config.yaml`; it does not discover competitors automatically.
 
 ## Architecture
 
-```text
-                  Weekly Scheduler
-                         │
-                         ▼
-                ┌─────────────────┐
-                │    LangGraph    │
-                │   State Graph   │
-                └────────┬────────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │ Fetch Articles│
-                 └───────┬───────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │ Extract Facts │
-                 │  LLM + Schema │
-                 └───────┬───────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │ Check Memory  │
-                 │ SQLite + Sim. │
-                 └───────┬───────┘
-                         │
-                    New facts?
-                    /       \
-                  No         Yes
-                  │           │
-                  ▼           ▼
-               Log Run   Write Summary
-                              │
-                              ▼
-                        Post to Slack
-                              │
-                              ▼
-                         Save Memory
-```
+The workflow is implemented as a LangGraph `StateGraph`. See [docs/architecture.md](docs/architecture.md) for the node responsibilities, state transitions, persistence behavior, and known boundaries.
 
-## Why LangGraph?
+## Technology
 
-The v1 system intentionally uses a single-agent state graph rather than multi-agent orchestration.
+- Python 3.12+
+- LangGraph and LangChain Core
+- Pydantic
+- NewsAPI
+- HTTPX
+- SQLite
+- PyYAML and python-dotenv
+- APScheduler
+- pytest, pytest-cov, and Ruff
 
-The workflow has a clear sequence of operations with explicit state, conditional branching, tool calls, and failure handling. LangGraph provides these capabilities while keeping the system deterministic and easy to debug.
+The LLM is passed into the application by the caller. The core repository does not assume OpenAI, Gemini, or another provider.
 
-Multi-agent orchestration is intentionally deferred to a future version where independent roles, tools, or objectives would justify the additional complexity.
-
-## Core Components
-
-| Component          | Responsibility                                   |
-| ------------------ | ------------------------------------------------ |
-| LangGraph          | Agent orchestration and state transitions        |
-| LLM                | Structured fact extraction and report generation |
-| News API           | Recent competitor news                           |
-| SQLite             | Persistent fact memory                           |
-| Slack Webhook      | Weekly report delivery                           |
-| APScheduler / cron | Autonomous scheduling                            |
-| Pydantic           | Structured data validation                       |
-| Pytest             | Automated testing                                |
-| Ruff               | Linting                                          |
-| GitHub Actions     | Continuous integration                           |
-
-## Memory
-
-The agent maintains persistent structured memory in SQLite.
-
-Each fact contains information such as:
+## Repository layout
 
 ```text
-competitor
-fact
-category
-date
-source_url
-first_seen_at
-```
-
-Before a fact reaches the final report, it is compared against previously stored facts.
-
-For v1, deduplication combines deterministic metadata filtering with lightweight text similarity. A vector database is intentionally avoided because the expected memory size does not justify the additional infrastructure.
-
-### Persistent Memory and Duplicate Detection
-
-The agent maintains persistent SQLite memory of previously discovered
-competitor developments.
-
-Before storing extracted facts, the memory-processing module:
-
-1. Loads previously stored facts for the relevant competitors.
-2. Normalizes text to reduce differences caused by capitalization,
-   punctuation, and whitespace.
-3. Calculates character-level similarity using Python's `difflib`.
-4. Classifies facts using a configurable similarity threshold
-   (default: 0.88).
-5. Stores new facts and skips detected duplicates.
-
-No vector database or embedding service is required.
-
-## Failure Handling
-
-The system is designed to continue operating when individual components fail.
-
-| Failure                | Behavior                              |
-| ---------------------- | ------------------------------------- |
-| News API failure       | Skip affected competitor and continue |
-| LLM extraction failure | Retry once, then skip article         |
-| No new facts           | Skip summary and Slack delivery       |
-| Duplicate fact         | Remove before reporting               |
-| Slack failure          | Save report locally                   |
-| Unexpected node error  | Record error in run history           |
-
-Every scheduled run produces an audit-log entry, including runs where no new information is discovered.
-
-## Repository Structure
-
-```text
-market-intel-agent/
-├── README.md
-├── pyproject.toml
-├── .env.example
-├── .gitignore
+.
 ├── config.yaml
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── src/
-│   └── market_intel/
-│       ├── graph.py
-│       ├── state.py
-│       ├── schemas.py
-│       │
-│       ├── nodes/
-│       │   ├── fetch.py
-│       │   ├── extract.py
-│       │   ├── memory.py
-│       │   ├── decide.py
-│       │   ├── write.py
-│       │   └── deliver.py
-│       │
-│       ├── tools/
-│       │   ├── news_api.py
-│       │   ├── slack.py
-│       │   └── db.py
-│       │
-│       └── utils/
-│           ├── logging.py
-│           └── similarity.py
-│
-├── tests/
-├── db/
-├── logs/
-└── scripts/
-    └── run_weekly.py
+├── .env.example
+├── pyproject.toml
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+├── docs/
+│   ├── architecture.md
+│   ├── configuration.md
+│   ├── operations.md
+│   └── demo/
+├── scripts/
+│   └── run_weekly.py
+├── src/market_intel/
+│   ├── application.py
+│   ├── config.py
+│   ├── graph.py
+│   ├── main.py
+│   ├── scheduler.py
+│   ├── schemas.py
+│   ├── state.py
+│   ├── nodes/
+│   ├── tools/
+│   └── utils/
+└── tests/
 ```
 
-## Development Status
+## Requirements
 
-### v1 Foundation
+- Python 3.12 or newer.
+- A NewsAPI key.
+- A LangChain-compatible chat model that supports the structured-output interface used by the extraction workflow and `invoke()` for summary generation.
+- A Slack incoming webhook if Slack delivery is required. Without it, the delivery node attempts a local Markdown fallback.
 
-* [x] Repository structure
-* [x] Python 3.12 configuration
-* [x] Development dependencies
-* [x] Environment configuration
-* [x] Ruff configuration
-* [x] Pytest configuration
-* [x] GitHub Actions CI
-* [ ] Domain schemas
-* [ ] LangGraph state
-* [ ] SQLite memory
-* [ ] News API integration
-* [ ] LLM fact extraction
-* [ ] Fact deduplication
-* [ ] Summary generation
-* [ ] Slack delivery
-* [ ] Failure recovery
-* [ ] Weekly scheduler
-* [ ] End-to-end tests
+## Installation
 
-## Testing
-
-Run the test suite locally:
+Clone the repository:
 
 ```bash
-pytest -v
+git clone https://github.com/Ahmedelgaafary/market-intel-agent.git
+cd market-intel-agent
 ```
 
-Run linting:
+Create and activate a virtual environment on Windows CMD:
 
-```bash
-ruff check .
+```cmd
+py -3.12 -m venv .venv
+.venv\Scripts\activate
 ```
 
-GitHub Actions runs the same checks automatically on pushes and pull requests.
+Install the package and development tools:
+
+```cmd
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
 
 ## Configuration
 
-Copy the environment template:
+Copy the example environment file:
 
-```bash
-cp .env.example .env
+```cmd
+copy .env.example .env
 ```
 
-Then configure the required API credentials.
+Set `NEWS_API_KEY` in `.env`. Set `SLACK_WEBHOOK_URL` if Slack delivery is wanted. `LLM_API_KEY` is a placeholder for the provider-specific model launcher; the core application does not read or instantiate a provider model from this variable.
 
-Secrets are never committed to the repository.
+Edit `config.yaml` to set competitors and workflow parameters. See [docs/configuration.md](docs/configuration.md).
 
-## Roadmap
+Runtime environment variables:
+- `NEWS_API_KEY`: required for `run_once`.
+- `SLACK_WEBHOOK_URL`: optional; missing or failed Slack delivery triggers local fallback.
+- `DATABASE_PATH`: optional; defaults to `db/facts.sqlite`.
+- `REPORT_DIR`: optional; overrides `reporting.output_dir` in YAML, which defaults to `reports`.
 
-### v1
+## Running the application
 
-A reliable autonomous weekly competitor-monitoring pipeline with:
+### Execute one run
 
-* 3–5 competitors
-* News API ingestion
-* Structured LLM extraction
-* SQLite memory
-* Duplicate detection
-* Executive summaries
-* Slack delivery
-* Failure recovery
-* Automated scheduling
-* CI and tests
+Initialize a compatible model in your own Python entry point, then call the runner:
 
-### v2+
+```python
+from market_intel.application import run_once
+from market_intel.config import load_config
 
-Potential extensions include:
+# `model` must be an initialized LangChain-compatible chat model.
+config = load_config()
+result = run_once(config=config, model=model)
 
-* Direct competitor website scraping
-* Playwright for JavaScript-heavy sites
-* Vector-based semantic memory
-* Human approval before delivery
-* Multi-agent orchestration
-* PDF reports
-* Email delivery
-* Multi-channel reporting
-* Financial and stock-data integration
+print(result["run_id"])
+print(result["status"])
+```
 
-## Engineering Principles
+The example deliberately does not instantiate a provider model: provider selection and credentials are the caller's responsibility.
 
-This project prioritizes:
+### Start the weekly scheduler
 
-* **Explicit state over hidden agent behavior**
-* **Structured extraction over free-form fact generation**
-* **Deterministic verification and memory logic**
-* **Isolated, testable tools**
-* **Graceful failure handling**
-* **Persistent auditability**
-* **Minimal infrastructure for the actual problem**
-* **Multi-agent complexity only when justified**
+```python
+from market_intel.main import run_scheduled_agent
 
-The goal is not to demonstrate the largest possible number of AI frameworks.
+# `model` must already be initialized.
+run_scheduled_agent(model=model)
+```
 
-The goal is to demonstrate how to build a **reliable autonomous AI workflow that can operate repeatedly without human intervention**.
+The scheduler remains running in the foreground and executes according to `schedule.day`, `schedule.hour`, `schedule.minute`, and `schedule.timezone` in `config.yaml`. The host machine or process manager must keep the process running.
+
+There is no provider-independent command-line model launcher in this repository. `scripts/run_weekly.py` is currently a placeholder and is not an executable CLI.
+
+## Data and reports
+
+- SQLite database: `db/facts.sqlite` by default.
+- Local Markdown reports: `reports/` by default.
+- Run history is available through `list_runs()` and `get_run()` in `market_intel.tools.db`.
+- Generated database files and reports are runtime artifacts; do not commit private or operational data.
+
+The SQLite `runs` table stores run ID, start/completion timestamps, status, article/fact metrics, and errors. Delivery-specific `delivery_status` and `report_path` are runtime graph state and are not separate columns in the current run table.
+
+## Development and tests
+
+Install development dependencies with `pip install -e ".[dev]"`.
+
+Run tests:
+
+```cmd
+pytest
+```
+
+Run coverage:
+
+```cmd
+pytest --cov=market_intel --cov-report=term-missing
+```
+
+Lint and formatting:
+
+```cmd
+ruff check src tests
+ruff format --check src tests
+```
+
+Apply formatting when intentionally changing code:
+
+```cmd
+ruff format src tests
+```
+
+Tests should mock external providers. Do not run real NewsAPI requests, send real Slack messages, or invoke a billable LLM from the automated test suite.
+
+## Operational notes and limitations
+
+- News coverage is limited by NewsAPI availability, quotas, and the articles returned for the query.
+- Extraction and summaries are model-generated and require human judgment before business-critical decisions.
+- Similarity-based duplicate detection is heuristic; semantically related facts may be missed or incorrectly matched.
+- The system monitors a fixed competitor list and a configured lookback window.
+- Slack delivery requires a valid incoming webhook.
+- The weekly scheduler is an in-process scheduler. It is not a hosted service and does not survive process or machine shutdown.
+- SQLite is appropriate for this single-application v1 workflow; concurrent multi-instance deployment is outside the v1 scope.
+- The current audit table does not persist delivery channel/path metadata separately.
+
+
+## License
+
+This project is distributed under the MIT License. See [LICENSE](LICENSE).

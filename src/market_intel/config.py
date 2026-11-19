@@ -92,6 +92,10 @@ def load_config(
     memory = _require_mapping(root.get("memory"), "memory")
     summary = _require_mapping(root.get("summary"), "summary")
     schedule = _require_mapping(root.get("schedule"), "schedule")
+    reporting = _require_mapping(
+        root.get("reporting", {"output_dir": "reports"}),
+        "reporting",
+    )
 
     lookback_days = _positive_int(news.get("lookback_days"), "news.lookback_days")
     max_articles = _positive_int(
@@ -148,7 +152,13 @@ def load_config(
         ZoneInfo(timezone)
     except ZoneInfoNotFoundError as exc:
         raise ValueError(f"Unknown schedule timezone: {timezone}") from exc
+    report_output_dir = os.getenv(
+        "REPORT_DIR",
+        reporting.get("output_dir", "reports"),
+    )
 
+    if not isinstance(report_output_dir, str) or not report_output_dir.strip():
+        raise ValueError("'reporting.output_dir' must be a non-empty string.")
     return AppConfig(
         competitors=normalized_competitors,
         news=NewsConfig(
@@ -164,8 +174,8 @@ def load_config(
             minute=minute,
             timezone=timezone,
         ),
-        database_path=Path(__import__("os").getenv("DATABASE_PATH", "db/facts.sqlite")),
-        report_dir=Path(os.getenv("REPORT_DIR", "reports")),
+        database_path=Path(os.getenv("DATABASE_PATH", "db/facts.sqlite")),
+        report_dir=Path(report_output_dir),
         news_api_key=os.getenv("NEWS_API_KEY"),
         slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL"),
     )

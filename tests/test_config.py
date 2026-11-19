@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from market_intel.config import load_config
@@ -103,3 +105,28 @@ def test_invalid_timezone_is_rejected(tmp_path):
 
     with pytest.raises(ValueError, match="timezone"):
         load_config(path, tmp_path / "missing.env")
+
+
+def test_report_directory_uses_yaml_setting(tmp_path, monkeypatch):
+    monkeypatch.delenv("REPORT_DIR", raising=False)
+
+    content = VALID_CONFIG + "\nreporting:\n  output_dir: custom-reports\n"
+    path = write_config(tmp_path, content)
+
+    config = load_config(path, tmp_path / "missing.env")
+
+    assert config.report_dir == Path("custom-reports")
+
+
+def test_report_directory_environment_variable_overrides_yaml(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setenv("REPORT_DIR", "environment-reports")
+
+    content = VALID_CONFIG + "\nreporting:\n  output_dir: custom-reports\n"
+    path = write_config(tmp_path, content)
+
+    config = load_config(path, tmp_path / "missing.env")
+
+    assert config.report_dir == Path("environment-reports")

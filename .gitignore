@@ -39,3 +39,6 @@ Thumbs.db
 
 # Structure
 create_structure.py
+# Generated reports
+reports/*
+!reports/.gitkeep
