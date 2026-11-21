@@ -8,7 +8,7 @@ import httpx
 from market_intel.schemas import Article
 
 BASE_URL = "https://newsapi.org/v2/everything"
-DEFAULT_TIMEOUT = 15.0
+DEFAULT_TIMEOUT = 30.0
 MAX_PAGE_SIZE = 100
 
 

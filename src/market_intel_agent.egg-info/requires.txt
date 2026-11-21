@@ -4,6 +4,7 @@ pydantic>=2.0
 python-dotenv
 httpx
 PyYAML
+APScheduler<4,>=3.10
 
 [dev]
 pytest

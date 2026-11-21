@@ -63,7 +63,7 @@ def load_config(
 ) -> AppConfig:
     """Load, validate, and return application configuration."""
 
-    load_dotenv(dotenv_path=env_path, override=False)
+    load_dotenv(dotenv_path=env_path, override=True)
 
     path = Path(config_path)
 

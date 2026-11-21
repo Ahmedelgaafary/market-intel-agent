@@ -32,7 +32,7 @@ def test_scheduler_registers_weekly_job(monkeypatch):
 
     assert captured["timezone"].key == "Africa/Cairo"
     assert captured["job"]["trigger"] == "cron"
-    assert captured["job"]["day_of_week"] == "monday"
+    assert captured["job"]["day_of_week"] == "mon"
     assert captured["job"]["hour"] == 9
     assert captured["job"]["minute"] == 0
     assert captured["job"]["max_instances"] == 1

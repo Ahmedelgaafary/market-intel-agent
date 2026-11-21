@@ -8,6 +8,7 @@ from langchain_core.exceptions import OutputParserException
 from pydantic import ValidationError
 
 from market_intel.schemas import Article, Fact, FactExtraction
+from market_intel.tools.llm_rate_limit import invoke_with_rate_limit
 
 MAX_ARTICLE_TEXT_CHARS = 12_000
 MAX_VALIDATION_RETRIES = 1
@@ -96,7 +97,9 @@ def _invoke_with_validation_retry(
 
     for attempt in range(MAX_VALIDATION_RETRIES + 1):
         try:
-            response = structured_model.invoke(messages)
+            response = invoke_with_rate_limit(
+                lambda current_messages=messages: structured_model.invoke(current_messages)
+            )
             validated = _validate_response(response)
             return validated, attempt + 1
 
