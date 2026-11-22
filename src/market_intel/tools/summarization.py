@@ -87,9 +87,7 @@ def generate_summary(
     prompt = build_summary_prompt(facts, max_words)
 
     try:
-        response = invoke_with_rate_limit(
-            lambda: model.invoke(prompt)
-        )
+        response = invoke_with_rate_limit(lambda: model.invoke(prompt))
     except Exception as exc:
         raise SummaryGenerationError(f"Language model summary generation failed: {exc}") from exc
 

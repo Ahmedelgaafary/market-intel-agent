@@ -1,4 +1,3 @@
-
 import pytest
 
 from market_intel.tools import llm_rate_limit
@@ -45,9 +44,7 @@ def test_rate_limit_error_uses_suggested_retry_delay(fake_clock):
         attempts += 1
 
         if attempts == 1:
-            raise RuntimeError(
-                "429 Too Many Requests. Please retry in 7.5s"
-            )
+            raise RuntimeError("429 Too Many Requests. Please retry in 7.5s")
 
         return "success"
 

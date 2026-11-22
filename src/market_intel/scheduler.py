@@ -24,6 +24,7 @@ def start_scheduler(
             logger.info("Scheduled workflow finished: %s", result)
         except Exception:
             logger.exception("Scheduled workflow execution failed.")
+
     weekday = schedule.day[:3].lower()
     scheduler.add_job(
         guarded_job,

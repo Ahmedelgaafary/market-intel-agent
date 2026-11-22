@@ -1,4 +1,3 @@
-
 """Shared rate limiting and bounded retries for language-model requests."""
 
 import re
@@ -73,10 +72,7 @@ def invoke_with_rate_limit[T](operation: Callable[[], T]) -> T:
                 return operation()
 
             except Exception as exc:
-                if (
-                    not _is_rate_limit_error(exc)
-                    or attempt >= MAX_RATE_LIMIT_RETRIES
-                ):
+                if not _is_rate_limit_error(exc) or attempt >= MAX_RATE_LIMIT_RETRIES:
                     raise
 
                 retry_delay = _get_retry_delay(exc)

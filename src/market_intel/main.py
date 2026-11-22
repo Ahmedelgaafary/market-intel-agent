@@ -1,4 +1,3 @@
-
 import logging
 import os
 
@@ -18,9 +17,7 @@ def create_model():
     """Create the configured Gemini model."""
 
     if not os.getenv("GOOGLE_API_KEY"):
-        raise ValueError(
-            "GOOGLE_API_KEY is not configured. Add it to your .env file."
-        )
+        raise ValueError("GOOGLE_API_KEY is not configured. Add it to your .env file.")
 
     model_name = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
 

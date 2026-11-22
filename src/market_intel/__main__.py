@@ -1,4 +1,3 @@
-
 from market_intel.main import main
 
 if __name__ == "__main__":
