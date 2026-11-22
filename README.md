@@ -1,5 +1,5 @@
 # Autonomous Market Intelligence & Competitor Tracking Agent
-
+https://github.com/user-attachments/assets/d4d662e3-e421-4532-8e82-d71082cfcb3e
 A Python application that monitors a configured list of competitors, extracts structured developments from news articles, compares them with historical SQLite memory, and produces concise executive intelligence reports.
 
 > **Project status:** v1 implementation. The application workflow and scheduled runner are provider-injected: you must initialize a LangChain-compatible chat model in your own launcher. No LLM provider SDK or model selection is included in this repository.
